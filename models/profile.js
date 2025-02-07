@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const fs = require('fs');
+const AppError = require('../utils/appError');
+const cloudinary = require('cloudinary').v2;
 const ProfileSchema = mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,

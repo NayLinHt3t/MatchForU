@@ -1,14 +1,32 @@
 const Profile = require('../models/profile');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 
 exports.createProfile = catchAsync(async (req, res, next) => {
+  const result = await cloudinary.uploader.upload(
+    req.files.image.tempFilePath,
+    { use_filename: true, folder: 'profile_picture' }
+  );
+  const image = result.secure_url;
+  fs.unlinkSync(req.files.image.tempFilePath);
+
+  const { name, age, bio } = req.body;
+
+  if (!name || !age || !bio) {
+    return next(new AppError('Please fill all fields', 400));
+  }
+
+  const userId = req.user._id;
+  const existingProfile = await Profile.findOne({ userId });
+  if (existingProfile) return next(new AppError('Profile already exist', 400));
   const profile = await Profile.create({
     userId: req.user._id,
-    name: req.body.name,
-    age: req.body.age,
-    bio: req.body.bio,
-    photo: req.body.photo,
+    name,
+    age,
+    bio,
+    photo: image,
   });
   res.status(201).json({
     status: 'success',

@@ -2,11 +2,19 @@ const express = require('express');
 const dontenv = require('dotenv');
 const dbConnect = require('./dbConnect');
 const AppError = require('./utils/appError');
+const fileUpload = require('express-fileupload');
+const cloudinary = require('cloudinary').v2;
 dontenv.config();
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
 const globalErrorHandler = require('./controllers/error');
 const userRoutes = require('./routes/user');
 const app = express();
 app.use(express.json());
+app.use(fileUpload({ useTempFiles: true }));
 app.use('/api/v1/users', userRoutes);
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
