@@ -12,10 +12,11 @@ cloudinary.config({
 });
 const globalErrorHandler = require('./controllers/error');
 const userRoutes = require('./routes/user');
+const matchRoutes = require('./routes/match');
 const app = express();
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
-app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/users', userRoutes, matchRoutes);
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });

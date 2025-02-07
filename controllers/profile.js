@@ -1,10 +1,21 @@
 const Profile = require('../models/profile');
+const User = require('../models/user');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 
 exports.createProfile = catchAsync(async (req, res, next) => {
+  const { name, age, bio, gender, interest } = req.body;
+
+  if (!name || !age || !bio || !gender || !interest) {
+    return next(new AppError('Please fill all fields', 400));
+  }
+
+  const userId = req.user._id;
+  const existingProfile = await Profile.findOne({ userId });
+  if (existingProfile) return next(new AppError('Profile already exist', 400));
+
   const result = await cloudinary.uploader.upload(
     req.files.image.tempFilePath,
     { use_filename: true, folder: 'profile_picture' }
@@ -12,20 +23,13 @@ exports.createProfile = catchAsync(async (req, res, next) => {
   const image = result.secure_url;
   fs.unlinkSync(req.files.image.tempFilePath);
 
-  const { name, age, bio } = req.body;
-
-  if (!name || !age || !bio) {
-    return next(new AppError('Please fill all fields', 400));
-  }
-
-  const userId = req.user._id;
-  const existingProfile = await Profile.findOne({ userId });
-  if (existingProfile) return next(new AppError('Profile already exist', 400));
   const profile = await Profile.create({
     userId: req.user._id,
     name,
     age,
     bio,
+    gender,
+    interest,
     photo: image,
   });
   res.status(201).json({
@@ -67,6 +71,7 @@ exports.updateProfile = catchAsync(async (req, res, next) => {
 
 exports.deleteProfile = catchAsync(async (req, res, next) => {
   await Profile.findByIdAndDelete(req.params.id);
+  await User.findByIdAndDelete(req.user._id);
   res.status(204).json({
     status: 'success',
     data: null,

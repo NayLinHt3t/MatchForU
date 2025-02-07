@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const AppError = require('../utils/appError');
+const { type } = require('os');
 const cloudinary = require('cloudinary').v2;
 const ProfileSchema = mongoose.Schema({
   userId: {
@@ -23,6 +24,22 @@ const ProfileSchema = mongoose.Schema({
   photo: {
     type: String,
     required: [true, 'Please upload a profile picture'],
+  },
+  gender: {
+    type: String,
+    enum: {
+      values: ['male', 'female'],
+      message: 'please choose your gender',
+    },
+    required: [true, 'please choose your gender'],
+  },
+  interest: {
+    type: String,
+    enum: {
+      values: ['male', 'female'],
+      message: 'please choose your interest',
+    },
+    required: [true, 'please choose your gender in interest'],
   },
 });
 
