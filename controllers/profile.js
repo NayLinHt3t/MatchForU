@@ -41,7 +41,7 @@ exports.createProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.getProfile = catchAsync(async (req, res, next) => {
-  const profile = await Profile.findById(req.params.id);
+  const profile = await Profile.findOne({ userId: req.user._id });
   if (!profile) {
     return next(new AppError('User Not Found', 404));
   }
@@ -54,10 +54,14 @@ exports.getProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.updateProfile = catchAsync(async (req, res, next) => {
-  const profile = await Profile.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidator: true,
-  });
+  const profile = await Profile.findOneAndUpdate(
+    { userId: req.user._id },
+    req.body,
+    {
+      new: true,
+      runValidator: true,
+    }
+  );
   if (!profile) {
     return next(new AppError('You profile is not found', 404));
   }
@@ -70,7 +74,7 @@ exports.updateProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteProfile = catchAsync(async (req, res, next) => {
-  await Profile.findByIdAndDelete(req.params.id);
+  await Profile.findOneAndDelete({ userId: req.user._id });
   await User.findByIdAndDelete(req.user._id);
   res.status(204).json({
     status: 'success',

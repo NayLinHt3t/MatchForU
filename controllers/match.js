@@ -7,10 +7,14 @@ const catchAsync = require('../utils/catchAsync');
 exports.likeUser = catchAsync(async (req, res, next) => {
   const { likedUserId } = req.body;
   const currentUserId = req.user._id;
+  const checkUser = await User.findOne({ _id: likedUserId });
+  if (checkUser._id.equals(currentUserId)) {
+    return next(new AppError("You can't like yourself", 400));
+  }
   let match = await Match.findOne({
     $or: [
       { user1: currentUserId, user2: likedUserId },
-      { user1: likedUserId, user2: likedUserId },
+      { user1: likedUserId, user2: currentUserId },
     ],
   });
   if (!match) {
@@ -20,16 +24,20 @@ exports.likeUser = catchAsync(async (req, res, next) => {
       user1Action: 'like',
     });
   } else {
-    if (match.user1.equals(currentUserId)) {
-      match.user1Action = 'like';
-    } else {
+    if (match.user2.equals(likedUserId) && match.user1Action === 'like') {
+      return next(new AppError('Already Liked the user', 400));
+    } else if (
+      match.user2.equals(currentUserId) &&
+      match.user1Action === 'like'
+    ) {
       match.user2Action = 'like';
+      match.status = 'matched';
+      match.matchedAt = new Date();
+    } else {
+      match.status = 'reject';
     }
   }
-  if (match.user1Action === 'like' && match.user2Action === 'like') {
-    match.status = 'matched';
-    match.matchedAt = new Date();
-  }
+
   await match.save();
   res.status(200).json({
     status: 'success',
@@ -42,6 +50,11 @@ exports.likeUser = catchAsync(async (req, res, next) => {
 exports.rejectUser = catchAsync(async (req, res, next) => {
   const { rejectedUserId } = req.body;
   const currentUserId = req.user._id;
+  const checkUser = await User.findOne({ _id: rejectedUserId });
+
+  if (checkUser._id.equals(currentUserId)) {
+    return next(new AppError("You can't reject yourself", 400));
+  }
   let match = await Match.findOne({
     $or: [
       { user1: currentUserId, user2: rejectedUserId },

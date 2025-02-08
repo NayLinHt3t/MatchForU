@@ -13,13 +13,15 @@ exports.getRandomUsers = catchAsync(async (req, res, next) => {
   const interactions = await Match.find({
     $or: [{ user1: currentUserId }, { user2: currentUserId }],
   });
+
   const interactedUserIds = interactions.map((match) =>
     match.user1.equals(currentUserId) ? match.user2 : match.user1
   );
+  console.log(interactedUserIds);
   const randomUsers = await Profile.aggregate([
     {
       $match: {
-        user: { $ne: currentUserId, $nin: interactedUserIds }, // Exclude self & interacted users
+        userId: { $ne: currentUserId, $nin: interactedUserIds }, // Exclude self & interacted users
         gender: interest, // Match gender preference
       },
     },
