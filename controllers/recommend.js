@@ -22,10 +22,13 @@ exports.getRandomUsers = catchAsync(async (req, res, next) => {
     {
       $match: {
         userId: { $ne: currentUserId, $nin: interactedUserIds }, // Exclude self & interacted users
-        gender: interest, // Match gender preference
+        gender:
+          interest === 'both'
+            ? { $in: ['male', 'female', 'prefer not to say'] }
+            : interest, // Match gender preference
       },
     },
-    { $sample: { size: 5 } }, // Randomize results, limit to 10 users
+    { $sample: { size: 5 } }, // Randomize results, limit to 5 users
   ]);
   res.status(200).json({
     status: 'success',

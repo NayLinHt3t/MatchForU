@@ -3,7 +3,7 @@ const Profile = require('../models/profile');
 const Match = require('../models/match');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
-
+const { getConnectedUsers, getIO } = require('../socket');
 exports.likeUser = catchAsync(async (req, res, next) => {
   const { likedUserId } = req.body;
   const currentUserId = req.user._id;
@@ -33,6 +33,29 @@ exports.likeUser = catchAsync(async (req, res, next) => {
       match.user2Action = 'like';
       match.status = 'matched';
       match.matchedAt = new Date();
+      const connectedUsers = getConnectedUsers();
+      const io = getIO();
+      const likedUserSocketId = connectedUsers.get(likedUserId);
+
+      const likedUserProfile = await Profile.findOne({ userId: likedUserId });
+      const currentUserProfile = await Profile.findOne({
+        userId: currentUserId,
+      });
+      if (likedUserSocketId) {
+        io.to(likedUserSocketId).emit('newMatch', {
+          _id: currentUserId,
+          name: currentUserProfile.name,
+          image: currentUserProfile.photo,
+        });
+      }
+      const currentUserSocketId = connectedUsers.get(currentUserId);
+      if (currentUserSocketId) {
+        io.to(likedUserSocketId).emit('newMatch', {
+          _id: currentUserId,
+          name: likedUserProfile.name,
+          image: likedUserProfile.photo,
+        });
+      }
     } else {
       match.status = 'reject';
     }
@@ -86,7 +109,10 @@ exports.getMatch = catchAsync(async (req, res, next) => {
   const matches = await Match.find({
     $or: [{ user1: currentUserId }, { user2: currentUserId }],
     status: 'matched',
-  }).populate('user1 user2', 'username photos');
+  }).populate({
+    path: 'user1 user2',
+    populate: { path: 'profile', select: 'name photo' },
+  });
 
   res.status(200).json({ matches });
 });
