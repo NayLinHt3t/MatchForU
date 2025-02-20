@@ -5,9 +5,9 @@ const profileController = require('../controllers/profile');
 
 router
   .route('/profile')
-  .get(authController.protected, profileController.getProfile);
-// .patch(authController.protected, profileController.updateProfile)
-// .delete(authController.protected, profileController.deleteProfile);
+  .get(authController.protected, profileController.getProfile)
+  .patch(authController.protected, profileController.updateProfile)
+  .delete(authController.protected, profileController.deleteProfile);
 router.post(
   '/profile',
   authController.protected,

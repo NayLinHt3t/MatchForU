@@ -28,7 +28,7 @@ const ProfileSchema = mongoose.Schema({
   gender: {
     type: String,
     enum: {
-      values: ['male', 'female'],
+      values: ['male', 'female', 'prefer not to say'],
       message: 'please choose your gender',
     },
     required: [true, 'please choose your gender'],
@@ -36,7 +36,7 @@ const ProfileSchema = mongoose.Schema({
   interest: {
     type: String,
     enum: {
-      values: ['male', 'female'],
+      values: ['male', 'female', 'both'],
       message: 'please choose your interest',
     },
     required: [true, 'please choose your gender in interest'],
