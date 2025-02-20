@@ -18,6 +18,7 @@ const globalErrorHandler = require('./controllers/error');
 const userRoutes = require('./routes/user');
 const matchRoutes = require('./routes/match');
 const messageRoutes = require('./routes/message');
+const activityRoutes = require('./routes/activity');
 const app = express();
 const httpServer = http.createServer(app);
 
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
 app.use('/api/v1/users', userRoutes, matchRoutes);
 app.use('/api/v1/message', messageRoutes);
+app.use('/api/v1/activity', activityRoutes);
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
