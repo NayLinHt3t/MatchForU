@@ -54,22 +54,37 @@ exports.getProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.updateProfile = catchAsync(async (req, res, next) => {
-  const result = await cloudinary.uploader.upload(
-    req.files.image.tempFilePath,
-    { use_filename: true, folder: 'profile_picture' }
-  );
+  let profile = null;
+  if (!req.files || !req.files.image) {
+    profile = await Profile.findOneAndUpdate(
+      { userId: req.user._id },
+      req.body,
+      {
+        new: true,
+        runValidator: true,
+      }
+    );
+  } else {
+    const result = await cloudinary.uploader.upload(
+      req.files.image.tempFilePath,
+      {
+        use_filename: true,
+        folder: 'profile_picture',
+      }
+    );
+    const image = result.secure_url;
+    fs.unlinkSync(req.files.image.tempFilePath);
 
-  const image = result.secure_url || null;
-  fs.unlinkSync(req.files.image.tempFilePath);
+    profile = await Profile.findOneAndUpdate(
+      { userId: req.user._id },
+      { ...req.body, image },
+      {
+        new: true,
+        runValidator: true,
+      }
+    );
+  }
 
-  const profile = await Profile.findOneAndUpdate(
-    { userId: req.user._id },
-    { ...req.body, photo: image },
-    {
-      new: true,
-      runValidator: true,
-    }
-  );
   if (!profile) {
     return next(new AppError('You profile is not found', 404));
   }
