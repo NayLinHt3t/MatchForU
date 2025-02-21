@@ -54,9 +54,17 @@ exports.getProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.updateProfile = catchAsync(async (req, res, next) => {
+  const result = await cloudinary.uploader.upload(
+    req.files.image.tempFilePath,
+    { use_filename: true, folder: 'profile_picture' }
+  );
+
+  const image = result.secure_url || null;
+  fs.unlinkSync(req.files.image.tempFilePath);
+
   const profile = await Profile.findOneAndUpdate(
     { userId: req.user._id },
-    req.body,
+    { ...req.body, photo: image },
     {
       new: true,
       runValidator: true,
