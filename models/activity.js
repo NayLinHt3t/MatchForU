@@ -21,6 +21,7 @@ const ActivitySchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 });
 
 module.exports = mongoose.model('Activity', ActivitySchema);

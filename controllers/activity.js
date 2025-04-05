@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catchAsync');
 const Activity = require('../models/activity');
+const AppError = require('../utils/appError');
 exports.createActivity = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
   const { activityName, time, location, number } = req.body;
@@ -23,6 +24,26 @@ exports.getActivity = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       activities,
+    },
+  });
+});
+
+exports.joinActivity = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const { activityId } = req.params;
+  const activity = await Activity.findById(activityId);
+  if (!activity) {
+    return next(new AppError('Activity not found', 404));
+  }
+  if (activity.participants.includes(userId)) {
+    return next(new AppError('You have already joined this activity', 400));
+  }
+  activity.participants.push(userId);
+  await activity.save();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      activity,
     },
   });
 });
