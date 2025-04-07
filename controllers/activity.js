@@ -47,3 +47,21 @@ exports.joinActivity = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.getActivity = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const { activityId } = req.params;
+  const activity = await Activity.findById(activityId);
+  if (!activity) {
+    return next(new AppError('Activity not found', 404));
+  }
+  if (!activity.participants.includes(userId)) {
+    return next(new AppError('You have not joined this activity', 400));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      activity,
+    },
+  });
+});
