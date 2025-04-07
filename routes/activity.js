@@ -4,7 +4,7 @@ const authController = require('../controllers/auth');
 const activityController = require('../controllers/activity');
 
 router.post('/', authController.protected, activityController.createActivity);
-router.get('/', authController.protected, activityController.getActivity);
+router.get('/', authController.protected, activityController.getAllActivity);
 router.get(
   '/:activityId',
   authController.protected,

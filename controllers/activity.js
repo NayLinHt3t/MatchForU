@@ -18,7 +18,7 @@ exports.createActivity = catchAsync(async (req, res, next) => {
     },
   });
 });
-exports.getActivity = catchAsync(async (req, res, next) => {
+exports.getAllActivity = catchAsync(async (req, res, next) => {
   const activities = await Activity.find({});
   res.status(200).json({
     status: 'success',
@@ -58,10 +58,12 @@ exports.getActivity = catchAsync(async (req, res, next) => {
   if (!activity.participants.includes(userId)) {
     return next(new AppError('You have not joined this activity', 400));
   }
+  const numberOfParticipants = activity.participants.length;
   res.status(200).json({
     status: 'success',
     data: {
       activity,
+      numberOfParticipants,
     },
   });
 });
