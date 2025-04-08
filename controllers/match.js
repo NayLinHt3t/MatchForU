@@ -114,12 +114,13 @@ exports.getMatch = catchAsync(async (req, res, next) => {
   if (!matches) {
     return next(new AppError('No matches found', 404));
   }
-  const matchedProfile = await Promise.all(
-    matches.map(async (match) => {
-      const profile = await Profile.findOne({ userId: currentUserId });
-      return profile;
-    })
-  );
-
-  res.status(200).json({ matchedProfile });
+  const matchUsers = matches.map(async (match) => {
+    if (match.user1.equals(currentUserId)) {
+      return await Profile.findOne({ userId: match.user2 });
+    } else {
+      return await Profile.findOne({ userId: match.user1 });
+    }
+  });
+  const matchUsersProfile = await Promise.all(matchUsers);
+  res.status(200).json({ matchUsersProfile });
 });
