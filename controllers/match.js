@@ -110,6 +110,10 @@ exports.getMatch = catchAsync(async (req, res, next) => {
     $or: [{ user1: currentUserId }, { user2: currentUserId }],
     status: 'matched',
   });
+
+  if (!matches) {
+    return next(new AppError('No matches found', 404));
+  }
   const matchedProfile = await Promise.all(
     matches.map(async (match) => {
       const profile = await Profile.findOne({ userId: currentUserId });
