@@ -109,10 +109,13 @@ exports.getMatch = catchAsync(async (req, res, next) => {
   const matches = await Match.find({
     $or: [{ user1: currentUserId }, { user2: currentUserId }],
     status: 'matched',
-  }).populate({
-    path: 'user1 user2',
-    populate: { path: 'profile', select: 'name photo' },
   });
+  const matchedProfile = await Promise.all(
+    matches.map(async (match) => {
+      const profile = await Profile.findOne({ userId: currentUserId });
+      return profile;
+    })
+  );
 
-  res.status(200).json({ matches });
+  res.status(200).json({ matchedProfile });
 });
